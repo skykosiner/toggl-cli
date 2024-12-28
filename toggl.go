@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 )
 
 type CurrentEntry struct {
-	ProjectName string `json:"project_name"`
+	ProjectID int `json:"project_id"`
 	Tags []string  `json:"tags"`
 	Start string `json:"start"`
 	Description string `json:"description"`
@@ -31,6 +32,36 @@ func (c CurrentEntry) GetDuration() string {
 
 
 	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+}
+
+func (c CurrentEntry) GetProjectName(apiKey string, workspaceID int) string {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.track.toggl.com/api/v9/workspaces/%d/projects/%d", workspaceID, c.ProjectID), nil)
+	if err != nil {
+		slog.Error("Error making request", "error", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	req.SetBasicAuth(apiKey, "api_token")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+	}
+
+	defer resp.Body.Close()
+	bytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+	}
+
+
+	var r struct{
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(bytes, &r); err != nil {
+		slog.Error("Error making request", "error", err)
+	}
+
+	return r.Name
 }
 
 func GetCurrentEntry(apiKey string) (CurrentEntry, error) {

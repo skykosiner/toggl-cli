@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -14,13 +15,33 @@ func main() {
 		return
 	}
 
-	cobra
-
-	curr, err := GetCurrentEntry(config.ApiKey)
-	if err != nil {
-	    slog.Error("Sorry there was an error getting the current time entry.", "error", err)
-		return
+	rootCmd := &cobra.Command{
+		Short: "toggl - toggl cli",
+		Use: "toggl",
 	}
 
-	fmt.Println(curr.GetDuration())
+	commands := []cobra.Command{
+		{
+			Use: "status",
+			Short: "Get the curent tracking status",
+			Run: func(cmd *cobra.Command, args []string) {
+				curr, err := GetCurrentEntry(config.ApiKey)
+				if err != nil {
+					slog.Error("Error getting the current status.", "error", err)
+					return
+				}
+
+				fmt.Printf("%s, %s, %s\n", curr.GetProjectName(config.ApiKey, config.WorkspaceID), curr.Description, curr.GetDuration())
+			},
+		},
+	}
+
+	for _, command := range commands {
+		rootCmd.AddCommand(&command)
+	}
+
+	if err := rootCmd.Execute(); err != nil {
+		slog.Error("Command execution failed", "error", err)
+		os.Exit(1)
+	}
 }
