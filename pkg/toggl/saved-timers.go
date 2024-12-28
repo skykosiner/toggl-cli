@@ -2,12 +2,14 @@ package toggl
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/skykosiner/toggl-cli/pkg/utils"
 )
 
-func (t *Toggl) NewSaveTimer() error {
+func (t *Toggl) NewSavedTimer() error {
 	name := utils.AskInput("Enter the name of the saved timer")
 	if len(name) == 0 {
 		fmt.Println("Please provide a name for the saved timer.")
@@ -37,6 +39,26 @@ func (t *Toggl) NewSaveTimer() error {
 		Tags: tags,
 		Description: description,
 	})
+
+	t.UpdateConfigFile()
+	return nil
+}
+
+func (t *Toggl) DeleteSavedTimer() error {
+	idx, err := fuzzyfinder.Find(t.SavedTimers,
+		func(i int) string {
+			return fmt.Sprintf("Name: %s ProjectID: %d, Tags: %s, Description: %s", t.SavedTimers[i].Name, t.SavedTimers[i].ProjectID, strings.Join(t.SavedTimers[i].Tags, ", "), t.SavedTimers[i].Description)
+		})
+
+	if err != nil {
+		if err.Error() == "abort" {
+			return nil
+		}
+
+		return err
+	}
+
+	t.SavedTimers = slices.Delete(t.SavedTimers, idx, idx+1)
 
 	t.UpdateConfigFile()
 	return nil

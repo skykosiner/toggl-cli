@@ -13,7 +13,7 @@ import (
 func main() {
 	rootCmd := &cobra.Command{
 		Short: "toggl - toggl cli",
-		Use: "toggl",
+		Use: "toggl-cli",
 	}
 
 	t, err := toggl.NewToggl()
@@ -87,7 +87,17 @@ func main() {
 			Use: "new-saved",
 			Short: "Save a new time entry",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := t.NewSaveTimer(); err != nil{
+				if err := t.NewSavedTimer(); err != nil{
+					fmt.Println(err)
+					return
+				}
+			},
+		},
+		{
+			Use: "delete-saved",
+			Short: "Delete a saved timer",
+			Run: func(cmd *cobra.Command, args []string) {
+				if err := t.DeleteSavedTimer(); err != nil{
 					fmt.Println(err)
 					return
 				}
