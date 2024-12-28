@@ -1,31 +1,33 @@
 # Commands
-* toggl status
+- [x] toggl status
     * Print the current status
-* toggl pause
+- [x] toggl pause
     * Pause the current time tracking
-* toggl resume
+- [x] toggl resume
     * Resume the current tracking
-* toggl stop
+- [x] toggl stop
     * Stop the current tracking entry
-* toggl start
-    * List your saved timers in config
+- [x] toggl start-saved
+    * Start time tracking with saved timers in your config
+- [ ] toggl start
     * List all your projects in general
         * Ask if you want to add a tag and then ask if you want to add a description
-* toggl new-saved
+- [ ] toggl new-saved
     * List your projects
         * Select a project
     * List tags
         * Select tag(s)
     * Ask if you want to add a description
-* toggl delete-saved
+- [ ] toggl delete-saved
     * List all your saved timers then select which ones you want to delete
-* toggl report day|week|month|year
+- [ ] toggl report day|week|month|year
     * Get report information for what the arg is
 
 # Config layout
 ```jsonc
 {
     "api_key": "xxx",
+    "workspace_id": "xxx",
     "saved_timers": [
         {
             "name": "Coding Toggl Project",
@@ -34,7 +36,7 @@
             // ID of each tag you want to add
             "tags": [
                 "xxx",
-                "xxxx",
+                "xxxx"
             ],
             // Leave blank for no description
             "description": ""

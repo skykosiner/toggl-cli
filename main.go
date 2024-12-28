@@ -80,6 +80,26 @@ func main() {
 				}
 			},
 		},
+		{
+			Use: "start-saved",
+			Short: "Start new time entry from your saved timers",
+			Run: func(cmd *cobra.Command, args []string) {
+				if err := StartSaved(config.ApiKey, config.WorkspaceID, config); err != nil{
+					fmt.Println(err)
+					return
+				}
+			},
+		},
+		{
+			Use: "start",
+			Short: "Start new time entry",
+			Run: func(cmd *cobra.Command, args []string) {
+				if err := Start(config.ApiKey, config.WorkspaceID); err != nil{
+					fmt.Println(err)
+					return
+				}
+			},
+		},
 	}
 
 	for _, command := range commands {

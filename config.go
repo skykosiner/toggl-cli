@@ -14,7 +14,7 @@ func removeComments(jsonc []byte) []byte {
 
 type SavedTimer struct {
 	Name        string   `json:"name"`
-	ProjectID   string   `json:"project_id"`
+	ProjectID   int`json:"project_id"`
 	Tags        []string `json:"tags"`
 	Description string   `json:"description"`
 }

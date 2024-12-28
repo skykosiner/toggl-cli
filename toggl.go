@@ -10,7 +10,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"time"
+
+	fuzzyfinder "github.com/ktr0731/go-fuzzyfinder"
 )
 
 type CurrentEntry struct {
@@ -29,6 +33,12 @@ type NewTimeEntry struct {
 	Start       string   `json:"start"`
 	Tags        []string `json:"tags"`
 	WorkspaceID int      `json:"workspace_id"`
+}
+
+type Project struct {
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	Active bool   `json:"active"`
 }
 
 func (c CurrentEntry) cache() {
@@ -98,7 +108,7 @@ func (c CurrentEntry) Stop(apiKey string, workspaceID int, pause bool) error {
 		c.cache()
 	}
 
-	resp, err := MakeRequest(http.MethodPatch, fmt.Sprintf("/workspaces/%d/time_entries/%dv/stop", workspaceID, c.ID), apiKey, nil)
+	resp, err := MakeRequest(http.MethodPatch, fmt.Sprintf("/workspaces/%d/time_entries/%d/stop", workspaceID, c.ID), apiKey, nil)
 	if err != nil {
 		return err
 	}
@@ -112,7 +122,7 @@ func (c CurrentEntry) Stop(apiKey string, workspaceID int, pause bool) error {
 
 func GetCurrentEntry(apiKey string) (CurrentEntry, error) {
 	var curr CurrentEntry
-	resp, err := MakeRequest(http.MethodPatch, "/me/time_entries/current", apiKey, nil)
+	resp, err := MakeRequest(http.MethodGet, "/me/time_entries/current", apiKey, nil)
 	if err != nil {
 		return curr, err
 	}
@@ -181,6 +191,76 @@ func ResumeEntry(apiKey string, workspaceID int) error {
 	}, apiKey, workspaceID); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func StartSaved(apiKey string, workspaceID int, config Config) error {
+	idx, err := fuzzyfinder.Find(config.SavedTimers,
+		func(i int) string {
+			return fmt.Sprintf("Name: %s ProjectID: %d, Tags: %s, Description: %s", config.SavedTimers[i].Name, config.SavedTimers[i].ProjectID, strings.Join(config.SavedTimers[i].Tags, ", "), config.SavedTimers[i].Description)
+		})
+
+	if err != nil {
+		if err.Error() == "abort" {
+			return nil
+		}
+
+		return err
+	}
+
+	if err := NewEntry(NewTimeEntry{
+		CreatedWith: "toggl cli",
+		Description: config.SavedTimers[idx].Description,
+		Duration:    -1,
+		ProjectID:   config.SavedTimers[idx].ProjectID,
+		Start:       time.Now().UTC().Format(time.RFC3339),
+		Tags:        config.SavedTimers[idx].Tags,
+		WorkspaceID: workspaceID,
+	}, apiKey, workspaceID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Start(apiKey string, WorkspaceID int) error {
+	var projects []Project
+
+	resp, err := MakeRequest(http.MethodGet, fmt.Sprintf("/workspaces/%d/projects", WorkspaceID), apiKey, nil)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	bytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(bytes, &projects); err != nil {
+		return err
+	}
+
+	projects = slices.DeleteFunc(projects, func(item Project) bool {
+		return !item.Active
+	})
+
+	idx, err := fuzzyfinder.Find(projects,
+		func(i int) string {
+			return fmt.Sprintf("%s", projects[i].Name)
+		})
+
+	if err != nil {
+		if err.Error() == "abort" {
+			return nil
+		}
+
+		return err
+	}
+
+	fmt.Println(idx)
 
 	return nil
 }
