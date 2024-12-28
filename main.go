@@ -4,20 +4,22 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
+	"github.com/skykosiner/toggl-cli/pkg/toggl"
 	"github.com/spf13/cobra"
 )
 
 func main() {
-	config, err := NewConfig()
-	if err != nil {
-	    slog.Error("Sorry there was an error processing your config. Check the README.", "error", err)
-		return
-	}
-
 	rootCmd := &cobra.Command{
 		Short: "toggl - toggl cli",
 		Use: "toggl",
+	}
+
+	t, err := toggl.NewToggl()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
 	}
 
 	commands := []cobra.Command{
@@ -25,30 +27,16 @@ func main() {
 			Use: "status",
 			Short: "Get the curent tracking status",
 			Run: func(cmd *cobra.Command, args []string) {
-				curr, err := GetCurrentEntry(config.ApiKey)
-				if err != nil {
-					slog.Error("Error getting the current status.", "error", err)
-					return
-				}
-
-				if curr.Description != "" {
-					fmt.Printf("%s: %s: %s\n", curr.GetProjectName(config.ApiKey, config.WorkspaceID), curr.Description, curr.GetDuration())
-				} else {
-					fmt.Printf("%s: %s\n", curr.GetProjectName(config.ApiKey, config.WorkspaceID), curr.GetDuration())
-				}
+				curr := t.GetCurrentTimer()
+				fmt.Printf("%s %s %s %s\n", curr.Description, strings.Join(curr.Tags, ", "), curr.GetProjectName(t.ApiKey, t.WorkspaceID), curr.GetDuration())
 			},
 		},
 		{
 			Use: "pause",
 			Short: "Pause the current entry",
 			Run: func(cmd *cobra.Command, args []string) {
-				curr, err := GetCurrentEntry(config.ApiKey)
-				if err != nil {
-					slog.Error("Error getting the current status.", "error", err)
-					return
-				}
-
-				if err := curr.Stop(config.ApiKey, config.WorkspaceID, true); err != nil {
+				curr := t.GetCurrentTimer()
+				if err := curr.Stop(t.ApiKey, t.WorkspaceID, true); err != nil {
 					fmt.Println(err)
 					return
 				}
@@ -58,13 +46,8 @@ func main() {
 			Use: "stop",
 			Short: "Stop the current entry",
 			Run: func(cmd *cobra.Command, args []string) {
-				curr, err := GetCurrentEntry(config.ApiKey)
-				if err != nil {
-					slog.Error("Error getting the current status.", "error", err)
-					return
-				}
-
-				if err := curr.Stop(config.ApiKey, config.WorkspaceID, false); err != nil {
+				curr := t.GetCurrentTimer()
+				if err := curr.Stop(t.ApiKey, t.WorkspaceID, false); err != nil {
 					fmt.Println(err)
 					return
 				}
@@ -74,7 +57,7 @@ func main() {
 			Use: "resume",
 			Short: "Resume the paused time entry",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := ResumeEntry(config.ApiKey, config.WorkspaceID); err != nil{
+				if err := t.ResumeEntry(); err != nil{
 					fmt.Println(err)
 					return
 				}
@@ -84,7 +67,7 @@ func main() {
 			Use: "start-saved",
 			Short: "Start new time entry from your saved timers",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := StartSaved(config.ApiKey, config.WorkspaceID, config); err != nil{
+				if err := t.StartSaved(); err != nil{
 					fmt.Println(err)
 					return
 				}
@@ -94,7 +77,17 @@ func main() {
 			Use: "start",
 			Short: "Start new time entry",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := Start(config.ApiKey, config.WorkspaceID); err != nil{
+				if err := t.Start(); err != nil{
+					fmt.Println(err)
+					return
+				}
+			},
+		},
+		{
+			Use: "new-saved",
+			Short: "Save a new time entry",
+			Run: func(cmd *cobra.Command, args []string) {
+				if err := t.NewSaveTimer(); err != nil{
 					fmt.Println(err)
 					return
 				}

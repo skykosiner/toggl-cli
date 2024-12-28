@@ -9,7 +9,7 @@
     * Stop the current tracking entry
 - [x] toggl start-saved
     * Start time tracking with saved timers in your config
-- [ ] toggl start
+- [x] toggl start
     * List all your projects in general
         * Ask if you want to add a tag and then ask if you want to add a description
 - [ ] toggl new-saved
