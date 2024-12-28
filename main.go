@@ -103,6 +103,24 @@ func main() {
 				}
 			},
 		},
+		{
+			Use: "report",
+			Short: "report",
+			Run: func(cmd *cobra.Command, args []string) {
+				reportMap := map[string]toggl.ReportType{
+					"day": toggl.Daily,
+					"week": toggl.Week,
+					"month": toggl.Monthly,
+					"year": toggl.Yearly,
+				}
+
+				if len(args) == 0 {
+					t.GetReport(toggl.Daily)
+				} else {
+					t.GetReport(reportMap[args[0]])
+				}
+			},
+		},
 	}
 
 	for _, command := range commands {
