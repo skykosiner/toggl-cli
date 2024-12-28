@@ -38,6 +38,22 @@ func main() {
 				}
 			},
 		},
+		{
+			Use: "pause",
+			Short: "Pause the current entry",
+			Run: func(cmd *cobra.Command, args []string) {
+				curr, err := GetCurrentEntry(config.ApiKey)
+				if err != nil {
+					slog.Error("Error getting the current status.", "error", err)
+					return
+				}
+
+				if err := curr.Stop(config.ApiKey, config.WorkspaceID, true); err != nil {
+					fmt.Println(err)
+					return
+				}
+			},
+		},
 	}
 
 	for _, command := range commands {

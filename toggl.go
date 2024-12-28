@@ -2,18 +2,47 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 )
 
 type CurrentEntry struct {
+	ID int `json:"id"`
 	ProjectID int `json:"project_id"`
 	Tags []string  `json:"tags"`
 	Start string `json:"start"`
 	Description string `json:"description"`
+}
+
+func (c CurrentEntry) cache() {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		slog.Error("Error getting cache dir", "error", err)
+		return
+	}
+
+	togglCache := filepath.Join(cacheDir, "toggl")
+	if err := os.MkdirAll(togglCache, 0755); err != nil {
+		slog.Error("Error creating cache dir.", "error", err, "path", togglCache)
+		return
+	}
+
+	bytes, err := json.Marshal(c)
+	if err != nil {
+		slog.Error("Error marshalling JSON of the timer.", "error", err, "timer", c)
+		return
+	}
+
+	if err := os.WriteFile(filepath.Join(togglCache, "toggl.json"), bytes, 0644); err != nil {
+		slog.Error("Error updating JSON cache file.", "error", err, "timer", c)
+		return
+	}
 }
 
 func (c CurrentEntry) GetDuration() string {
