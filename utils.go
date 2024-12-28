@@ -1,11 +1,12 @@
 package main
 
 import (
+	"io"
 	"net/http"
 )
 
-func MakeRequest(method, path, apiKey string) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, "https://api.track.toggl.com/api/v9" + path, nil)
+func MakeRequest(method, path, apiKey string, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequest(method, "https://api.track.toggl.com/api/v9" + path, body)
 	if err != nil {
 		return nil, err
 	}
