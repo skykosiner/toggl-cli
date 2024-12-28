@@ -31,7 +31,11 @@ func main() {
 					return
 				}
 
-				fmt.Printf("%s, %s, %s\n", curr.GetProjectName(config.ApiKey, config.WorkspaceID), curr.Description, curr.GetDuration())
+				if curr.Description != "" {
+					fmt.Printf("%s: %s: %s\n", curr.GetProjectName(config.ApiKey, config.WorkspaceID), curr.Description, curr.GetDuration())
+				} else {
+					fmt.Printf("%s: %s\n", curr.GetProjectName(config.ApiKey, config.WorkspaceID), curr.GetDuration())
+				}
 			},
 		},
 	}
