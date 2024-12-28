@@ -64,24 +64,14 @@ func (c CurrentEntry) GetDuration() string {
 }
 
 func (c CurrentEntry) GetProjectName(apiKey string, workspaceID int) string {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.track.toggl.com/api/v9/workspaces/%d/projects/%d", workspaceID, c.ProjectID), nil)
+	resp, err := MakeRequest(http.MethodGet, fmt.Sprintf("/workspaces/%d/projects/%d", workspaceID, c.ProjectID), apiKey)
 	if err != nil {
-		slog.Error("Error making request", "error", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	req.SetBasicAuth(apiKey, "api_token")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
+		slog.Error("Error when making request to get project name", "error", err)
+		return ""
 	}
 
 	defer resp.Body.Close()
-	bytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-	}
-
+	bytes, _  := io.ReadAll(resp.Body)
 
 	var r struct{
 		Name string `json:"name"`
@@ -93,18 +83,26 @@ func (c CurrentEntry) GetProjectName(apiKey string, workspaceID int) string {
 	return r.Name
 }
 
-func GetCurrentEntry(apiKey string) (CurrentEntry, error) {
-	var curr CurrentEntry
-	req, err := http.NewRequest(http.MethodGet, "https://api.track.toggl.com/api/v9/me/time_entries/current", nil)
-	if err != nil {
-		return curr, err
+func (c CurrentEntry) Stop(apiKey string, workspaceID int, pause bool) error {
+	if pause {
+		c.cache()
 	}
 
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	req.SetBasicAuth(apiKey, "api_token")
+	resp, err := MakeRequest(http.MethodPatch, fmt.Sprintf("/workspaces/%d/time_entries/%dv/stop", workspaceID, c.ID), apiKey)
+	if err != nil {
+		return err
+	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	if resp.StatusCode != 200 {
+		return errors.New("Couldn't stop timer please try again.")
+	}
+
+	return nil
+}
+
+func GetCurrentEntry(apiKey string) (CurrentEntry, error) {
+	var curr CurrentEntry
+	resp, err := MakeRequest(http.MethodPatch, "/me/time_entries/current", apiKey)
 	if err != nil {
 		return curr, err
 	}
@@ -115,6 +113,16 @@ func GetCurrentEntry(apiKey string) (CurrentEntry, error) {
 		return curr, err
 	}
 
+	if string(bytes) == "null" {
+		// This means the timer isn't running when the bytes are null, so just
+		// exit
+		os.Exit(1)
+	}
+
 	err = json.Unmarshal(bytes, &curr)
 	return curr, err
+}
+
+func ResumeEntry() error {
+	return nil
 }
