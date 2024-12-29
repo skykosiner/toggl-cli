@@ -48,7 +48,7 @@ func NewToggl() (Toggl, error) {
 		return t, err
 	}
 
-	configPath := path.Join(configDir, "toggl", "config.jsonc")
+	configPath := path.Join(configDir, "toggl", "config.json")
 	bytes, err := os.ReadFile(configPath)
 	if err != nil {
 		return t, err

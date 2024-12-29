@@ -104,8 +104,14 @@ func main() {
 			},
 		},
 		{
-			Use: "report",
-			Short: "report",
+			Use: "report <time>",
+			ValidArgs: []string{
+				"day",
+				"week",
+				"month",
+				"year",
+			},
+			Short: "Generate a report of a your time tracked",
 			Run: func(cmd *cobra.Command, args []string) {
 				reportMap := map[string]toggl.ReportType{
 					"day": toggl.Daily,

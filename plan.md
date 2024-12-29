@@ -20,11 +20,11 @@
     * Ask if you want to add a description
 - [x] toggl delete-saved
     * List all your saved timers then select which ones you want to delete
-- [ ] toggl report day|week|month|year
+- [x] toggl report day|week|month|year
     * Get report information for what the arg is
 
 # Config layout
-```jsonc
+```json
 {
     "api_key": "xxx",
     "workspace_id": "xxx",
