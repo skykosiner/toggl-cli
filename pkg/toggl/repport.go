@@ -53,7 +53,7 @@ func (r Report) getProjectName(apiKey string, workspaceID int) string {
 	}
 
 	if err := json.Unmarshal(bytes, &re); err != nil {
-		slog.Error("Error making request", "error", err)
+		return "No Project"
 	}
 
 	return re.Name
@@ -64,21 +64,37 @@ func (t Toggl) GetReport(r ReportType) {
 	switch r {
 	case Daily:
 		startDate = time.Now().Format("2006-01-02")
-		fmt.Println("=== Day ===")
+		utils.PrintBanner(`
+╺━╸╺━╸╺━╸   ╺┳┓┏━┓╻ ╻   ╺━╸╺━╸╺━╸
+╺━╸╺━╸╺━╸    ┃┃┣━┫┗┳┛   ╺━╸╺━╸╺━╸
+╺━╸╺━╸╺━╸   ╺┻┛╹ ╹ ╹    ╺━╸╺━╸╺━╸
+`)
 	case Week:
 		startDate = time.Now().AddDate(0, 0, -7).Format("2006-01-02")
-		fmt.Println("=== Week ===")
+		utils.PrintBanner(`
+╺━╸╺━╸╺━╸   ╻ ╻┏━╸┏━╸╻┏    ╺━╸╺━╸╺━╸
+╺━╸╺━╸╺━╸   ┃╻┃┣╸ ┣╸ ┣┻┓   ╺━╸╺━╸╺━╸
+╺━╸╺━╸╺━╸   ┗┻┛┗━╸┗━╸╹ ╹   ╺━╸╺━╸╺━╸
+`)
 	case Monthly:
 		startDate = time.Now().AddDate(0, -1, 0).Format("2006-01-02")
-		fmt.Println("=== Month ===")
+		utils.PrintBanner(`
+╺━╸╺━╸╺━╸   ┏┳┓┏━┓┏┓╻╺┳╸╻ ╻   ╺━╸╺━╸╺━╸
+╺━╸╺━╸╺━╸   ┃┃┃┃ ┃┃┗┫ ┃ ┣━┫   ╺━╸╺━╸╺━╸
+╺━╸╺━╸╺━╸   ╹ ╹┗━┛╹ ╹ ╹ ╹ ╹   ╺━╸╺━╸╺━╸
+
+`)
 	case Yearly:
 		startDate = time.Now().AddDate(-1, 0, 0).Format("2006-01-02")
-		fmt.Println("=== Year ===")
+		utils.PrintBanner(`
+╺━╸╺━╸╺━╸    ╻ ╻┏━╸┏━┓┏━┓    ╺━╸╺━╸╺━╸
+╺━╸╺━╸╺━╸    ┗┳┛┣╸ ┣━┫┣┳┛    ╺━╸╺━╸╺━╸
+╺━╸╺━╸╺━╸     ╹ ┗━╸╹ ╹╹┗╸    ╺━╸╺━╸╺━╸
+`)
 	default:
 		fmt.Println("Invalid ReportType")
 		return
 	}
-
 
 	rp := ReportBody{
 		StartDate: startDate,
@@ -95,7 +111,10 @@ func (t Toggl) GetReport(r ReportType) {
 	req.SetBasicAuth(t.ApiKey, "api_token")
 
 	client := &http.Client{}
-	resp, _ := client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		os.Exit(1)
+	}
 
 	defer resp.Body.Close()
 
