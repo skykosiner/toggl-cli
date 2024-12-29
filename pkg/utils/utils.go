@@ -7,14 +7,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 )
-
-func RemoveComments(jsonc []byte) []byte {
-	re := regexp.MustCompile(`(?m)//.*$|/\*.*?\*/`)
-	return re.ReplaceAll(jsonc, nil)
-}
 
 func MakeRequest(method, path, apiKey string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(method, "https://api.track.toggl.com/api/v9"+path, body)

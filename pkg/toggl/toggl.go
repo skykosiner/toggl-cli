@@ -54,7 +54,7 @@ func NewToggl() (Toggl, error) {
 		return t, err
 	}
 
-	err = json.Unmarshal(utils.RemoveComments(bytes), &t)
+	err = json.Unmarshal(bytes, &t)
 	return t, err
 }
 
@@ -71,7 +71,7 @@ func (t Toggl) UpdateConfigFile() {
 		os.Exit(1)
 	}
 
-	configPath := path.Join(configDir, "toggl", "config.jsonc")
+	configPath := path.Join(configDir, "toggl", "config.json")
 
 	if err := os.WriteFile(configPath, bytes, 0644); err != nil {
 		slog.Error("Couldn't update config file", "erorr", err)
@@ -169,8 +169,22 @@ func (t Toggl) ResumeEntry() error {
 func (t Toggl) StartSaved() error {
 	idx, err := fuzzyfinder.Find(t.SavedTimers,
 		func(i int) string {
-			return fmt.Sprintf("Name: %s ProjectID: %d, Tags: %s, Description: %s", t.SavedTimers[i].Name, t.SavedTimers[i].ProjectID, strings.Join(t.SavedTimers[i].Tags, ", "), t.SavedTimers[i].Description)
-		})
+				return t.SavedTimers[i].Name
+		},
+		fuzzyfinder.WithPreviewWindow(func(i, width, height int) string {
+			if i == -1 {
+				return ""
+			}
+
+			if t.SavedTimers[i].Description != "" {
+				return fmt.Sprintf("Tags: %s\nDescription: %s",
+				strings.Join(t.SavedTimers[i].Tags, ", "),
+				t.SavedTimers[i].Description)
+			} else {
+				return fmt.Sprintf("Tags: %s",
+				strings.Join(t.SavedTimers[i].Tags, ", "))
+			}
+		}))
 
 	if err != nil {
 		if err.Error() == "abort" {
