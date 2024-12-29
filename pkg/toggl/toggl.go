@@ -178,11 +178,11 @@ func (t Toggl) StartSaved() error {
 
 			if t.SavedTimers[i].Description != "" {
 				return fmt.Sprintf("Tags: %s\nDescription: %s",
-				strings.Join(t.SavedTimers[i].Tags, ", "),
+				strings.Join(t.SavedTimers[i].Tags, "\n"),
 				t.SavedTimers[i].Description)
 			} else {
 				return fmt.Sprintf("Tags: %s",
-				strings.Join(t.SavedTimers[i].Tags, ", "))
+				strings.Join(t.SavedTimers[i].Tags, "\n"))
 			}
 		}))
 
