@@ -35,6 +35,7 @@ Available Commands:
   start-saved  Start new time entry from your saved timers
   status       Get the curent tracking status
   stop         Stop the current entry
+  tag          Create new tag(s)
 
 Flags:
   -h, --help   help for toggl-cli

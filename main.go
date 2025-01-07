@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"strings"
 
@@ -13,7 +12,7 @@ import (
 func main() {
 	rootCmd := &cobra.Command{
 		Short: "toggl - toggl cli",
-		Use: "toggl-cli",
+		Use:   "toggl-cli",
 	}
 
 	t, err := toggl.NewToggl()
@@ -24,7 +23,7 @@ func main() {
 
 	commands := []cobra.Command{
 		{
-			Use: "status",
+			Use:   "status",
 			Short: "Get the curent tracking status",
 			Run: func(cmd *cobra.Command, args []string) {
 				curr := t.GetCurrentTimer()
@@ -32,7 +31,7 @@ func main() {
 			},
 		},
 		{
-			Use: "pause",
+			Use:   "pause",
 			Short: "Pause the current entry",
 			Run: func(cmd *cobra.Command, args []string) {
 				curr := t.GetCurrentTimer()
@@ -43,7 +42,7 @@ func main() {
 			},
 		},
 		{
-			Use: "stop",
+			Use:   "stop",
 			Short: "Stop the current entry",
 			Run: func(cmd *cobra.Command, args []string) {
 				curr := t.GetCurrentTimer()
@@ -54,50 +53,50 @@ func main() {
 			},
 		},
 		{
-			Use: "resume",
+			Use:   "resume",
 			Short: "Resume the paused time entry",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := t.ResumeEntry(); err != nil{
+				if err := t.ResumeEntry(); err != nil {
 					fmt.Println(err)
 					return
 				}
 			},
 		},
 		{
-			Use: "start-saved",
+			Use:   "start-saved",
 			Short: "Start new time entry from your saved timers",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := t.StartSaved(); err != nil{
+				if err := t.StartSaved(); err != nil {
 					fmt.Println(err)
 					return
 				}
 			},
 		},
 		{
-			Use: "start",
+			Use:   "start",
 			Short: "Start new time entry",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := t.Start(); err != nil{
+				if err := t.Start(); err != nil {
 					fmt.Println(err)
 					return
 				}
 			},
 		},
 		{
-			Use: "new-saved",
+			Use:   "new-saved",
 			Short: "Save a new time entry",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := t.NewSavedTimer(); err != nil{
+				if err := t.NewSavedTimer(); err != nil {
 					fmt.Println(err)
 					return
 				}
 			},
 		},
 		{
-			Use: "delete-saved",
+			Use:   "delete-saved",
 			Short: "Delete a saved timer",
 			Run: func(cmd *cobra.Command, args []string) {
-				if err := t.DeleteSavedTimer(); err != nil{
+				if err := t.DeleteSavedTimer(); err != nil {
 					fmt.Println(err)
 					return
 				}
@@ -114,16 +113,30 @@ func main() {
 			Short: "Generate a report of a your time tracked",
 			Run: func(cmd *cobra.Command, args []string) {
 				reportMap := map[string]toggl.ReportType{
-					"day": toggl.Daily,
-					"week": toggl.Week,
+					"day":   toggl.Daily,
+					"week":  toggl.Week,
 					"month": toggl.Monthly,
-					"year": toggl.Yearly,
+					"year":  toggl.Yearly,
 				}
 
 				if len(args) == 0 {
 					t.GetReport(toggl.Daily)
 				} else {
 					t.GetReport(reportMap[args[0]])
+				}
+			},
+		},
+		{
+			Use:   "tag",
+			Short: "Create new tag(s)",
+			Run: func(cmd *cobra.Command, args []string) {
+				if len(args) == 0 {
+					fmt.Fprintln(os.Stderr, "Please provide tag(s).")
+					return
+				}
+
+				if err := t.NewTags(args); err != nil {
+					fmt.Fprintln(os.Stderr, err)
 				}
 			},
 		},
@@ -134,7 +147,6 @@ func main() {
 	}
 
 	if err := rootCmd.Execute(); err != nil {
-		slog.Error("Command execution failed", "error", err)
 		os.Exit(1)
 	}
 }
