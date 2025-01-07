@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Opens a new terminal window and allows me to pick a saved timer to start
+# I then bind that to super+p+n in hyprland
+# I then use window rules in hyprland to make it centred and floating
+# ```
+# windowrulev2 = float, title:^toggl$
+# windowrulev2 = size 900x900, title:^toggl$
+# windowrulev2 = move center, title:^toggl$
+#```
+ghostty --title="toggl" -e "toggl-cli start"
